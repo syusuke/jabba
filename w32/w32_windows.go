@@ -1,9 +1,14 @@
 package w32
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"github.com/Jabba-Team/jabba/cfg"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
 	"syscall"
 	"unsafe"
 )
@@ -88,4 +93,37 @@ func ShellExecuteEx(pExecInfo *SHELLEXECUTEINFO) error {
 		return nil
 	}
 	return errors.New(errorMsg)
+}
+
+func ElevatedRun(name string, arg ...string) (bool, error) {
+	ok, err := run("cmd", nil, append([]string{"/C", name}, arg...)...)
+	if err != nil {
+		rootDir := filepath.Join(cfg.Dir(), "windows")
+		ok, err = run("elevate.cmd", &rootDir, append([]string{"cmd", "/C", name}, arg...)...)
+	}
+	return ok, err
+}
+func run(name string, dir *string, arg ...string) (bool, error) {
+	c := exec.Command(name, arg...)
+	if dir != nil {
+		c.Dir = *dir
+	}
+	var stderr bytes.Buffer
+	c.Stderr = &stderr
+	err := c.Run()
+	if err != nil {
+		return false, errors.New(fmt.Sprint(err) + ": " + stderr.String())
+	}
+
+	return true, nil
+}
+func IsAccessDenied(err error) bool {
+	fmt.Println(fmt.Sprintf("%v", err))
+
+	if strings.Contains(strings.ToLower(err.Error()), "access is denied") {
+		fmt.Println("See https://bit.ly/nvm4w-help")
+		return true
+	}
+
+	return false
 }

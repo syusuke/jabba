@@ -1,0 +1,18 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="deactivate" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="jabba" />
+    <working_directory value="$PROJECT_DIR$" />
+    <go_parameters value="-ldflags &quot;-X main.version=kerry-test&quot;" />
+    <parameters value="deactivate" />
+    <envs>
+      <env name="JABBA_HOME" value="G:\SDK\jabba" />
+      <env name="JAVA_HOME" value="G:\SDK\JabbaJava" />
+    </envs>
+    <kind value="FILE" />
+    <package value="github.com/Jabba-Team/jabba" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/jabba.go" />
+    <output_directory value="$PROJECT_DIR$/build" />
+    <method v="2" />
+  </configuration>
+</component>

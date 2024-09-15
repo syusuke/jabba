@@ -7,3 +7,11 @@ func ShellExecuteAndWait(hwnd HWND, lpOperation, lpFile, lpParameters, lpDirecto
 func ShellExecuteEx(pExecInfo *SHELLEXECUTEINFO) error {
 	panic("Unsupported OS")
 }
+
+func ElevatedRun(name string, arg ...string) (bool, error) {
+	panic("Unsupported OS")
+}
+
+func IsAccessDenied(err error) bool {
+	panic("Unsupported OS")
+}
