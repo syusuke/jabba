@@ -1,7 +1,6 @@
 package command
 
 import (
-	"fmt"
 	"github.com/Jabba-Team/jabba/w32"
 	"os"
 	"path/filepath"
@@ -49,8 +48,6 @@ func usePath(path string) ([]string, error) {
 
 func setUseGlobal(javaHome string, systemJavaHome string) bool {
 	if runtime.GOOS == "windows" {
-		executable, err := os.Executable()
-		fmt.Println(executable, err)
 		symLink, isSetSymLink := os.LookupEnv("JABBA_SYMLINK")
 		if isSetSymLink {
 			sym, _ := os.Lstat(symLink)
@@ -73,12 +70,13 @@ func setUseGlobal(javaHome string, systemJavaHome string) bool {
 			if originHome != symLink {
 				_, _ = w32.ElevatedRun("setx", "/M", "JAVA_HOME", filepath.Clean(symLink))
 			}
+			_, _ = w32.ElevatedRun("setx", "/M", "JAVA_HOME_BEFORE_JABBA", systemJavaHome)
 			return true
-		} else {
+		} /*else {
 			_, _ = w32.ElevatedRun("setx", "/M", "JAVA_HOME", javaHome)
 		}
 		_, _ = w32.ElevatedRun("setx", "/M", "JAVA_HOME_BEFORE_JABBA", systemJavaHome)
-		return true
+		return true*/
 	}
 	return false
 }
