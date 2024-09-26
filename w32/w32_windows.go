@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Jabba-Team/jabba/cfg"
+	"golang.org/x/sys/windows"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,6 +18,9 @@ var (
 	modshell32 = syscall.NewLazyDLL("shell32.dll")
 	// https://msdn.microsoft.com/en-us/library/windows/desktop/bb762154(v=vs.85).aspx
 	procShellExecuteEx = modshell32.NewProc("ShellExecuteExW")
+
+	modkernel32                   = syscall.NewLazyDLL("kernel32.dll")
+	procQueryFullProcessImageName = modkernel32.NewProc("QueryFullProcessImageNameW")
 )
 
 // some of the code below was borrowed from
@@ -126,4 +130,90 @@ func IsAccessDenied(err error) bool {
 	}
 
 	return false
+}
+
+func ReplaceEvalShell(out []string) []string {
+	size := len(out)
+	if size == 0 {
+		return out
+	}
+	shellType := DetectShellType()
+
+	runCmd := make([]string, size)
+
+	for i := range out {
+		cmd := strings.TrimSpace(out[i])
+		if shellType == "cmd" {
+			if strings.HasPrefix(cmd, "export") {
+				cmd = strings.TrimSpace(cmd[6:])
+				cmd = "set " + cmd
+			} else if strings.HasPrefix(cmd, "unset") {
+				cmd = strings.TrimSpace(cmd[5:])
+				cmd = "set " + cmd + "="
+			}
+		} else if shellType == "powershell" {
+			if strings.HasPrefix(cmd, "export") {
+				cmd = strings.TrimSpace(cmd[6:])
+				cmd = "$env:" + cmd
+			} else if strings.HasPrefix(cmd, "unset") {
+				cmd = strings.TrimSpace(cmd[5:])
+				cmd = "Remove-Item env:" + cmd
+			}
+		}
+		// else other make default
+		runCmd[i] = cmd
+	}
+
+	return runCmd
+}
+
+func DetectShellType() string {
+	// detect shell by parent pid
+	ppid := os.Getppid()
+	if ppid == -1 {
+		// default is cmd.
+		return "cmd"
+	}
+	path, err := getProcessPath(uint32(ppid))
+	if err != nil {
+		// default is cmd.
+		return "cmd"
+	}
+	if strings.HasSuffix(path, "pwsh.exe") || strings.HasSuffix(path, "powershell.exe") {
+		// powershell 7 or windows powershell
+		return "powershell"
+	}
+	if strings.HasSuffix(path, "bash.exe") {
+		// such: git bash
+		return "bash"
+	}
+	// default is cmd.
+	return "cmd"
+}
+
+func getProcessPath(pid uint32) (string, error) {
+	// const PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+	handle, err := windows.OpenProcess(0x1000, false, pid)
+	if err != nil {
+		return "", err
+	}
+	defer windows.CloseHandle(handle)
+
+	// 缓冲区来存储进程的路径
+	var modName [windows.MAX_PATH]uint16
+	size := uint32(len(modName))
+
+	// 调用 QueryFullProcessImageNameW
+	ret, _, err := procQueryFullProcessImageName.Call(
+		uintptr(handle),
+		uintptr(0),
+		uintptr(unsafe.Pointer(&modName[0])),
+		uintptr(unsafe.Pointer(&size)),
+	)
+
+	if ret == 0 {
+		return "", err
+	}
+
+	return syscall.UTF16ToString(modName[:]), nil
 }

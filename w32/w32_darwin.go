@@ -14,3 +14,7 @@ func ElevatedRun(name string, arg ...string) (bool, error) {
 func IsAccessDenied(err error) bool {
 	panic("Unsupported OS")
 }
+func ReplaceEvalShell(out []string) []string {
+	return out
+}
+func DetectShellType() string { return "sh" }

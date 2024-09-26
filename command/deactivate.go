@@ -19,7 +19,7 @@ func Deactivate() ([]string, error) {
 	if !overrideWasSet {
 		javaHome, _ = os.LookupEnv("JAVA_HOME")
 	}
-	setDeactivateGlobal(javaHome)
+	globalDeactivate(javaHome)
 	return []string{
 		"export PATH=\"" + pth + "\"",
 		"export JAVA_HOME=\"" + javaHome + "\"",
@@ -27,15 +27,19 @@ func Deactivate() ([]string, error) {
 	}, nil
 }
 
-func setDeactivateGlobal(javaHome string) bool {
-	if runtime.GOOS == "windows" {
-		_, _ = w32.ElevatedRun("setx", "/M", "JAVA_HOME", javaHome)
-		_, _ = w32.ElevatedRun("setx", "/M", "JAVA_HOME_BEFORE_JABBA", "")
-		// _, err := w32.ElevatedRun("wmic", "ENVIRONMENT", "where", "name='JAVA_HOME_BEFORE_JABBA'", "delete")
-		// if err != nil {
-		// 	fmt.Println(err)
-		// }
-		return true
+func globalDeactivate(javaHome string) bool {
+	_, isSetSymLink := os.LookupEnv("JABBA_SYMLINK")
+	if isSetSymLink {
+		if runtime.GOOS == "windows" {
+			_, _ = w32.ElevatedRun("setx", "/M", "JAVA_HOME", javaHome)
+			_, _ = w32.ElevatedRun("setx", "/M", "JAVA_HOME_BEFORE_JABBA", "")
+			// _, err := w32.ElevatedRun("wmic", "ENVIRONMENT", "where", "name='JAVA_HOME_BEFORE_JABBA'", "delete")
+			// if err != nil {
+			// 	fmt.Println(err)
+			// }
+			return true
+		}
 	}
+
 	return false
 }

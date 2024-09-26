@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
+	"github.com/Jabba-Team/jabba/w32"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -414,6 +415,16 @@ func use(ver string) error {
 }
 
 func printForShellToEval(out []string) {
+	_, isSetSymLink := os.LookupEnv("JABBA_SYMLINK")
+	if isSetSymLink {
+		out = w32.ReplaceEvalShell(out)
+		for i := range out {
+			// valid now, is print?
+			fmt.Println(out[i])
+		}
+		return
+	}
+
 	fd3, _ := rootCmd.Flags().GetString("fd3")
 	if fd3 != "" {
 		ioutil.WriteFile(fd3, []byte(strings.Join(out, "\n")), 0666)

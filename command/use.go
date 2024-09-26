@@ -38,7 +38,7 @@ func usePath(path string) ([]string, error) {
 	if !overrideWasSet {
 		systemJavaHome, _ = os.LookupEnv("JAVA_HOME")
 	}
-	setUseGlobal(path, systemJavaHome)
+	globalUsePath(path, systemJavaHome)
 	return []string{
 		"export PATH=\"" + filepath.Join(path, "bin") + string(os.PathListSeparator) + pth + "\"",
 		"export JAVA_HOME=\"" + path + "\"",
@@ -46,10 +46,10 @@ func usePath(path string) ([]string, error) {
 	}, nil
 }
 
-func setUseGlobal(javaHome string, systemJavaHome string) bool {
-	if runtime.GOOS == "windows" {
-		symLink, isSetSymLink := os.LookupEnv("JABBA_SYMLINK")
-		if isSetSymLink {
+func globalUsePath(javaHome string, systemJavaHome string) bool {
+	symLink, isSetSymLink := os.LookupEnv("JABBA_SYMLINK")
+	if isSetSymLink {
+		if runtime.GOOS == "windows" {
 			sym, _ := os.Lstat(symLink)
 			if sym != nil {
 				_, err := w32.ElevatedRun("rmdir", filepath.Clean(symLink))

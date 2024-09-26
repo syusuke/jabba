@@ -30,9 +30,9 @@ func findJavaPath() (string, error) {
 	javaPath, err := lookPath("java")
 	if err == nil {
 		// find java
-		if runtime.GOOS == "windows" {
-			symLink, isSetSymLink := os.LookupEnv("JABBA_SYMLINK")
-			if isSetSymLink {
+		symLink, isSetSymLink := os.LookupEnv("JABBA_SYMLINK")
+		if isSetSymLink {
+			if runtime.GOOS == "windows" {
 				prefix := symLink + string(os.PathSeparator)
 				if strings.HasPrefix(javaPath, prefix) {
 					readlink, err := os.Readlink(symLink)
