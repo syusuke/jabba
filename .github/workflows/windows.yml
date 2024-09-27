@@ -36,7 +36,7 @@ jobs:
         CGO_ENABLED=0
         GOOS=windows
         GOARCH=amd64
-        go build -ldflags "-s -w -X main.version=dev-test-ac" -o release-windows/jabba.exe
+        go build -ldflags "-s -w -X main.version=${{ github.ref_name }}" -o release-windows/jabba.exe
 
     - name: copy windows shell
       run: cp -r windows release-windows/
@@ -44,5 +44,9 @@ jobs:
     - name: copy install shell
       run: cp jabba-newinstall.ps1 release-windows/jabba.ps1
 
+    - name: Zip
+      run: zip -r jabba-${{ github.ref_name }}.zip .
+
     - name: ls
       run: ls release-windows/
+
