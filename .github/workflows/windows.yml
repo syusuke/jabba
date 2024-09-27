@@ -36,7 +36,13 @@ jobs:
         CGO_ENABLED=0
         GOOS=windows
         GOARCH=amd64
-        go build -ldflags "-s -w -X main.version=dev-test-ac" -o release/
+        go build -ldflags "-s -w -X main.version=dev-test-ac" -o release-windows/jabba.exe
+
+    - name: copy windows shell
+      run: cp -r windows release-windows/
+
+    - name: copy install shell
+      run: cp jabba-newinstall.ps1 release-windows/jabba.ps1
 
     - name: ls
-      run: ls release/
+      run: ls release-windows/
