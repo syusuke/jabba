@@ -45,7 +45,9 @@ jobs:
       run: cp jabba-newinstall.ps1 release-windows/jabba.ps1
 
     - name: Zip
-      run: zip -r jabba-${{ github.ref_name }}.zip .
+      run: |
+        cd release-windows
+        zip -r jabba-${{ github.ref_name }}.zip .
 
     - name: ls
       run: ls release-windows/
